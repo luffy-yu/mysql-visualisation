@@ -1,0 +1,29 @@
+server:
+  port: 8085
+##数据源配置
+spring:
+  datasource:
+        url : jdbc:mysql://cluster2:3306/homework3?useUnicode=true&characterEncoding=utf8
+        username : root
+        password : root
+        driver-class-name : com.mysql.jdbc.Driver
+#==================================配置上传文件的大小===========================
+  http:
+       multipart:
+          maxFileSize: 100Mb
+          maxRequestSize: 100Mb
+#默认后缀
+  thymeleaf:
+        prefix : /static/ 
+##Mybatis 配置
+mybatis :
+  typeAliasesPackage : com.homework3.ylc
+  mapperLocations : classpath:mapper/*.xml
+#静态属性
+application :
+   hello : HelloAngel From application 
+#=====================================  log  =============================  
+logging :
+   config : classpath:logback-boot.xml
+   file : myLog.log
+

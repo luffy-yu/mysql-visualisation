@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html  style="height: 100%">
+<head>
+<meta charset="UTF-8">
+<title>MySQL Visualisation</title>
+<meta name="renderer" content="webkit">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="layui/css/layui.css" />
+<script src="js/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="js/echarts.js"></script>
+<script type="text/javascript" src="js/ecStat.min.js"></script>
+<script type="text/javascript" src="js/simplex.js"></script>
+<script src="./layui/layui.js"></script>	
+</head>
+<body  style="height: 100%; margin: 0">
+<ul class="layui-nav">
+  <li class="layui-nav-item"><a href="">统计并展示一段时间内的用户行为数据</a></li>
+</ul>
+  <div class="layui-form" style='margin-top: 2rem;'>
+  <div class="layui-form-item">
+    <div class="layui-inline">
+      <label class="layui-form-label">开始时间</label>
+      <div class="layui-input-inline">
+        <input type="text" class="layui-input" id="start_date" placeholder="yyyy-MM-dd">
+      </div>
+    </div>
+    <div class="layui-inline">
+      <label class="layui-form-label">结束时间</label>
+      <div class="layui-input-inline">
+        <input type="text" class="layui-input" id="end_date" placeholder="yyyy-MM-dd">
+      </div>
+      <button id="query" style='margin-left: 20px;' class="layui-btn layui-btn-normal">查询</button>
+    </div>
+    </div>
+</div>
+  <div id="container" style="height: 70%"></div>
+	<script type="text/javascript">
+	$("#query").click(function(){
+	var level=[];
+	var degree=[];
+	var name=[];
+	var total=[];
+	var publish=[];
+	var view=[];
+	var comment = [];
+	var level_int = 0;
+	var start=$("#start_date").val();
+	var end=$("#end_date").val();
+	 $.ajax({
+			url : "/queryUserBehaviorDayUid",
+			data:{"start":start, "end":end},
+			dataType : "json",
+			type : "post",
+			success : function(data) {
+				  console.info(data);
+			   for(var i=0;i<data.length;i++){
+				   if(data[i].level == '小白') level_int = 1;
+				   else if(data[i].level == '普通') level_int = 2;
+				   else if(data[i].level == '精英') level_int = 3;
+				   else if(data[i].level == '专家') level_int = 4;
+				   else level_int = 0;
+				   level.push(level_int);
+				   degree.push(data[i].degree);
+				   total.push(data[i].behavior_total);
+				   publish.push(data[i].behavior_publish);
+				   view.push(data[i].behavior_view);
+				   comment.push(data[i].behavior_comment);
+				   name.push(data[i].uid);
+				  
+			   }
+			   show_data(name,level,degree,total,publish,view,comment) 
+			}
+		});
+	})
+	
+	
+	function show_data(name,level,degree,title,total,publish,view,comment){
+		var dom = document.getElementById("container");
+		var myChart = echarts.init(dom);
+		var app = {};
+		option = null;
+		option = {
+		    title: {
+		        text: '统计并展示一段时间内的用户行为数据',
+		        subtext: '于留传 17127141@bjtu.edu.cn'
+		    },
+			tooltip : {
+				trigger : 'axis',
+				axisPointer : {
+					type : 'shadow'
+				},
+			},
+			legend:{
+				data:['等级','学历','发表','浏览','评论']
+			},
+			grid : {
+				left : '3%',
+				right : '4%',
+				bottom : '3%',
+				containLabel : true
+			},
+			xAxis : [ {
+				type : 'category',
+				data :name,
+				axisTick : {
+					alignWithLabel : true
+				}
+			} ],
+			yAxis : [ {
+				type : 'value'
+			} ],
+			dataZoom: [{
+		        type: 'inside',
+		        start: 0,
+		        end: 10
+		    }, {
+		        start: 0,
+		        end: 10,
+		        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+		        handleSize: '80%',
+		        handleStyle: {
+		            color: '#fff',
+		            shadowBlur: 3,
+		            shadowColor: 'rgba(0, 0, 0, 0.6)',
+		            shadowOffsetX: 2,
+		            shadowOffsetY: 2
+		        }
+		    }],
+			series : [
+				{
+					name : '等级',
+					type : 'bar',
+					data : level,
+				},
+				{
+					name : '学历',
+					type : 'bar',
+					data : degree
+				},
+				{
+					name : '发表',
+					type : 'bar',
+					stack : '行为',
+					data : publish
+				},
+				{
+					name : '浏览',
+					type : 'bar',
+					stack : '行为',
+					data : view
+				},
+				{
+					name : '评论',
+					type : 'bar',
+					stack : '行为',
+					data : comment
+				},
+			]
+		};
+		;
+		if (option && typeof option === "object") {
+			myChart.setOption(option, true);
+		}
+	}
+	</script>
+	<script>
+layui.use(['laydate'], function(){
+  var laydate = layui.laydate;
+  
+  //日期
+  laydate.render({
+    elem: '#start_date',
+    value: '2015-01-01',
+    isInitValue: true
+  });
+  laydate.render({
+    elem: '#end_date',
+    value: '2015-01-02',
+    isInitValue: true
+  });
+  
+});
+</script>
+</body>
+</html>
